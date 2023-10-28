@@ -62,6 +62,22 @@ class ApiGraph:
             }
         )
 
+    # https://developers.facebook.com/docs/messenger-platform/send-messages/sender-actions/
+    def send_action(self, recipient_id, action):
+        post(
+            f'{self.url}/v18.0/me/messages',
+            params={
+                'access_token': self.meta_token
+            },
+            headers=self.headers,
+            json={
+                'recipient': {
+                    'id': recipient_id
+                },
+                'sender_action': action
+            }
+        )
+
     def __options(self):
         return [
             {

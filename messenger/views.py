@@ -1,6 +1,7 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from django.conf import settings
+from time import sleep
 from .utils.apigraph import ApiGraph
 
 
@@ -41,6 +42,11 @@ class WebhookView(generics.GenericAPIView):
                 sender_id = message['sender']['id']
                 postback = message.get('postback')
                 msg = message.get('message')
+
+                apigraph.send_action(sender_id, 'mark_seen')
+                sleep(1)
+                apigraph.send_action(sender_id, 'typing_on')
+
                 if postback:
                     self.post_back_event(sender_id, postback)
                 else:
@@ -48,12 +54,14 @@ class WebhookView(generics.GenericAPIView):
         return Response(status=status.HTTP_200_OK)
 
     def post_back_event(self, sender_id, postback):
+        apigraph.send_action(sender_id, 'typing_off')
         payload = postback.get('payload')
 
         if payload == 'GET_STARTED_PAYLOAD':
             return apigraph.welcome_message(sender_id)
 
     def message_event(self, sender_id, message):
+        apigraph.send_action(sender_id, 'typing_off')
         quick_reply = message.get('quick_reply')
 
         if quick_reply:
