@@ -7,7 +7,7 @@ from .utils.apigraph import ApiGraph
 apigraph = ApiGraph()
 
 
-class setupView(generics.GenericAPIView):
+class SetupView(generics.GenericAPIView):
     serializer_class = None
     http_method_names = ['get']
 
@@ -32,15 +32,56 @@ class WebhookView(generics.GenericAPIView):
             return Response(data=int(hub_challenge), status=status.HTTP_200_OK)
 
         return Response(status=status.HTTP_403_FORBIDDEN)
-    
+
     def post(self, request):
         data = request.data
         for entry in data['entry']:
             messaging = entry['messaging']
             for message in messaging:
                 sender_id = message['sender']['id']
-                apigraph.send_message(
-                    sender_id,
-                    'Respuesta de TECSUP'
-                )
+                postback = message.get('postback')
+                msg = message.get('message')
+                if postback:
+                    self.post_back_event(sender_id, postback)
+                else:
+                    self.message_event(sender_id, msg)
         return Response(status=status.HTTP_200_OK)
+
+    def post_back_event(self, sender_id, postback):
+        payload = postback.get('payload')
+
+        if payload == 'GET_STARTED_PAYLOAD':
+            return apigraph.welcome_message(sender_id)
+
+    def message_event(self, sender_id, message):
+        quick_reply = message.get('quick_reply')
+
+        if quick_reply:
+            return self.quick_reply_event(sender_id, message)
+
+        return apigraph.send_message(
+            sender_id,
+            {
+                'text': message.get('text')
+            }
+        )
+
+    def quick_reply_event(self, sender_id, message):
+        quick_reply = message.get('quick_reply')
+        payload = quick_reply.get('payload')
+
+        if payload == 'RED_COLOR':
+            return apigraph.send_message(
+                sender_id,
+                {
+                    'text': 'Escogiste el color rojo'
+                }
+            )
+
+        if payload == 'GREEN_COLOR':
+            return apigraph.send_message(
+                sender_id,
+                {
+                    'text': 'Escogiste el color verde'
+                }
+            )
