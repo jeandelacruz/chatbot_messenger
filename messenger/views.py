@@ -59,29 +59,18 @@ class WebhookView(generics.GenericAPIView):
         if quick_reply:
             return self.quick_reply_event(sender_id, message)
 
-        return apigraph.send_message(
-            sender_id,
-            {
-                'text': message.get('text')
-            }
-        )
+        text = message.get('text')
+        apigraph.spotify_search_track(sender_id, text)
+        return apigraph.retry_options(sender_id)
 
     def quick_reply_event(self, sender_id, message):
         quick_reply = message.get('quick_reply')
         payload = quick_reply.get('payload')
 
-        if payload == 'RED_COLOR':
-            return apigraph.send_message(
-                sender_id,
-                {
-                    'text': 'Escogiste el color rojo'
-                }
-            )
+        if payload == 'SEARCH_MUSIC':
+            return apigraph.search_music_message(sender_id)
 
-        if payload == 'GREEN_COLOR':
-            return apigraph.send_message(
-                sender_id,
-                {
-                    'text': 'Escogiste el color verde'
-                }
-            )
+        if payload == 'TALK_MESSAGE':
+            apigraph.talk_chat_message(sender_id)
+
+        return apigraph.retry_options(sender_id)

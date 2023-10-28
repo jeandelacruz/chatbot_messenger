@@ -128,3 +128,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Configuración de META
 META_TOKEN = config('META_TOKEN')
 META_VERIFY = config('META_VERIFY')
+
+# Configuración de SPOTIFY
+SPOTIFY_CLIENT_ID = config('SPOTIFY_CLIENT_ID')
+SPOTIFY_CLIENT_SECRET = config('SPOTIFY_CLIENT_SECRET')
